@@ -64,6 +64,26 @@ HgWaterChem_DO_LakeCharsinnerjoin=inner_join(HG_WATERCHEM_DO,BSM_LAKE_CHARS, by=
 head(HgWaterChem_DO_LakeCharsinnerjoin)
 length(unique(HgWaterChem_DO_LakeCharsinnerjoin$WATERBODY_LID))
 write.csv(HgWaterChem_DO_LakeCharsinnerjoin, "HG_WATERCHERM_DO_LAKECHAR.csv")
+                  
+##Merging Lakeshed LULC from ArcMap shapefile dbf to HG_WATERCHEM_DO_LAKECHAR database
+LakeshedsLulc=read.csv("lakeshed_lulc.csv")
+head(LakeshedsLulc)
+
+LakeshedLULC.tbl=as.table(as.matrix(LakeshedLULC[,-c(1:4)])) ## Get rid of first few columns including water as its lakesize
+LakeshedLULC.prpn2=prop.table(LakeshedLULC.tbl,1) #make a proportion table of all the LULC variables for each lakeshed
+head(LakeshedLULC.prpn2)
+chart.Correlation(LakeshedLULC.prpn2, pch=21)
+write.csv(LakeshedLULC.prpn2, "LakeshedLULC.prpn2.csv")
+
+LakeshedLULC=read.csv("LakeshedLULC.prpn2.csv")
+head(LakeshedLULC)
+                 
+##Lets merge LULC with previous database
+HgWaterChemDOLakeChars_LULCinnerjoin=inner_join(HgWaterChem_DO_LakeCharsinnerjoin,LakeshedLULC, by="WATERBODY_LID") 
+length(HgWaterChemDOLakeChars_LULCinnerjoin$WATERBODY_LID)
+length(unique(HgWaterChemDOLakeChars_LULCinnerjoin$WATERBODY_LID))
+head(HgWaterChemDOLakeChars_LULCinnerjoin)
+write.csv(HgWaterChemDOLakeChars_LULCinnerjoin,"HG_WATERCHEM_DO_LAKECHAR_LULC.csv")
 
 ###############################################################################################################################
 ### Read the Age database
