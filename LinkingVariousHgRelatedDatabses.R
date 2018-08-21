@@ -12,13 +12,13 @@ Hg_Data_allyears=read.csv("Hg_data_1970_Mar2016.csv") #The original HG database 
 head(Hg_Data_allyears)
 length(unique(Hg_Data_allyears$SAMPLE_DATE)) #get a count
 
-BSM_WBC_LUT=read.csv("WBC_BSM_LUT.csv") # A look up table linking Waterbody code with BsM Lake Ids
+BSM_WBC_LUT=read.csv("WBC_BSM_LUT.csv") # A look up table linking Waterbody code with BsM Lake Ids ("WATERBODY_LID")
 names(BSM_WBC_LUT)[2]="WATERBODY_LID" ##Ensure the varaible used as the common factor in merging databases have same name
 head(BSM_WBC_LUT)
 
 ###First join Hg_Data_allyears with BSM_WBC_LUT using "WATERBODY_CODE" as the joining variable
 Hg_BSM_innerjoin=inner_join(BSM_WBC_LUT,Hg_Data_allyears, by="WATERBODY_CODE") #Joining the above tables
-
+write.csv(Hg_BSM_innerjoin, "HG_BSM_LUT_ALLYEARS.csv")
 
 WATER_CHEM=read.csv("WaterChemLakeStatistics.csv") # All the waterchemistry variables from BsM
 names(WATER_CHEM)[4]="WATERBODY_LID"
