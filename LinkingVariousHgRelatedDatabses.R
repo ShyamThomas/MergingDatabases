@@ -56,8 +56,8 @@ HgWaterChem_DO_innerjoin=inner_join(BSM_DO_min,HGBSM_WATERCHEM_2008TO2012, by="W
 tail(HgWaterChem_DO_innerjoin)
 HG_BSM_WATERCHEM_DO=write.csv(HgWaterChem_DO_innerjoin)
                   
-### Join in Lake specific features
-BSM_LAKE_CHARS=read.csv("BSM_Lake_chars.csv") #Lake characterstics including size, lake order
+### Join in Lake specific features which includes lake strahler and shreve estimates
+BSM_LAKE_CHARS=read.csv("BSM_Lake_chars.csv") #Lake characterstics including size, lake order; shreve; GDD
 names(BSM_LAKE_CHARS)[1]="WATERBODY_LID"
 head(BSM_LAKE_CHARS)
 HgWaterChem_DO_LakeCharsinnerjoin=inner_join(HG_WATERCHEM_DO,BSM_LAKE_CHARS, by="WATERBODY_LID")
