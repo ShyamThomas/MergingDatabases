@@ -5,8 +5,68 @@ library(PerformanceAnalytics)
 
 setwd("C:/Users/thoma/Rprojects/Databases")
 
+#######################################################MERGING DATABASE WIITHOUT AGE INFORMATION#########################################
 #First read all the databases
 
+Hg_Data_allyears=read.csv("Hg_data_1970_Mar2016.csv") #The original HG database with fewer columns
+head(Hg_Data_allyears)
+length(unique(Hg_Data_allyears$SAMPLE_DATE)) #get a count
+
+BSM_WBC_LUT=read.csv("WBC_BSM_LUT.csv") # A look up table linking Waterbody code with BsM Lake Ids
+names(BSM_WBC_LUT)[2]="WATERBODY_LID" ##Ensure the varaible used as the common factor in merging databases have same name
+head(BSM_WBC_LUT)
+
+###First join Hg_Data_allyears with BSM_WBC_LUT using "WATERBODY_CODE" as the joining variable
+Hg_BSM_innerjoin=inner_join(BSM_WBC_LUT,Hg_Data_allyears, by="WATERBODY_CODE") #Joining the above tables
+
+
+WATER_CHEM=read.csv("WaterChemLakeStatistics.csv") # All the waterchemistry variables from BsM
+names(WATER_CHEM)[4]="WATERBODY_LID"
+head(WATER_CHEM)
+
+### Need to get an estimate of all the missing values in Waterchemistry database
+na_count = sapply(WATER_CHEM, function(WATER_CHEM) sum(length(which(is.na(WATER_CHEM)))))
+na_count = data.frame(na_count)
+na_count
+                  
+## New Waterchem database without NA's                  
+WaterChem_nona=na.omit(WATER_CHEM)
+tail(WaterChem_nona)
+length(WaterChem_nona$WATERBODY_LID)
+                  
+### Second join between Hg_BSM_innerjoin and Waterchem_nona                  
+WaterChemNoNa_HGBSM=inner_join(WaterChem_nona, Hg_BSM_innerjoin, by = "WATERBODY_LID")
+tail(WaterChemNoNa_HGBSM)
+length(WaterChemNoNa_HGBSM$WATERBODY_LID)
+write.csv(WaterChemNoNa_HGBSM,"WaterChem_nonaInnerJoined_HGBSM.csv")
+                  
+### Subset the above joint database for years 2008-2012; first BSM cycle
+WaterChemNoNa_HGBSM.ss=subset(WaterChemNoNa_HGBSM,WaterChemNoNa_HGBSM$SAMPLE_YEAR>2007 & WaterChemNoNa_HGBSM$SAMPLE_YEAR<2013)
+head(WaterChemNoNa_HGBSM.ss)
+min(WaterChemNoNa_HGBSM.ss$SAMPLE_YEAR)
+max(WaterChemNoNa_HGBSM.ss$SAMPLE_YEAR)
+length(unique(WaterChemNoNa_HGBSM.ss$WATERBODY_LID))
+write.csv(WaterChemNoNa_HGBSM.ss,"WaterChem_nonaInnerJoined_HGBSM_2008to2012.csv")
+                  
+### Joining in BSM dissolved oygen database to above database
+BSM_DO_min=read.csv("./BSMdata/BSM_DO.csv")
+BSM_DO_min=na.omit(BSM_D0)
+head(BSM_DO_min)
+HgWaterChem_DO_innerjoin=inner_join(BSM_DO_min,HGBSM_WATERCHEM_2008TO2012, by="WATERBODY_LID")
+tail(HgWaterChem_DO_innerjoin)
+HG_BSM_WATERCHEM_DO=write.csv(HgWaterChem_DO_innerjoin)
+                  
+### Join in Lake specific features
+BSM_LAKE_CHARS=read.csv("BSM_Lake_chars.csv") #Lake characterstics including size, lake order
+names(BSM_LAKE_CHARS)[1]="WATERBODY_LID"
+head(BSM_LAKE_CHARS)
+HgWaterChem_DO_LakeCharsinnerjoin=inner_join(HG_WATERCHEM_DO,BSM_LAKE_CHARS, by="WATERBODY_LID")
+head(HgWaterChem_DO_LakeCharsinnerjoin)
+length(unique(HgWaterChem_DO_LakeCharsinnerjoin$WATERBODY_LID))
+write.csv(HgWaterChem_DO_LakeCharsinnerjoin, "HG_WATERCHERM_DO_LAKECHAR.csv")
+
+###############################################################################################################################
+### Read the Age database
 HG_AGE_BSM=read.csv("Age_Hg_linked.csv") # The long-running mercury database with age included from Stephanie
 head(HG_AGE_BSM)
 HG_AGE_BSM.SS=HG_AGE_BSM[,-c(5,10,12,14,20:24)] #A subset of above database with fewer columns
@@ -16,25 +76,7 @@ colnames=c("WATERBODY_cODE", "LAT", "LONG", "SPECIES", "SAMPLE_DATE", "NETTING_S
 
 colnames(HG_AGE_BSM.SS)=colnames
 head(HG_AGE_BSM.SS)
-
-BSM_WBC_LUT=read.csv("WBC_BSM_LUT.csv") # A look up table linking Waterbody code with BsM Lake Ids
-names(BSM_WBC_LUT)[2]="WATERBODY_LID" ##Ensure the varaible used as the common factor in merging databases have same name
-head(BSM_WBC_LUT)
-
-BSM_LAKE_CHARS=read.csv("BSM_Lake_chars.csv") #Lake characterstics including size, lake order
-names(BSM_LAKE_CHARS)[1]="WATERBODY_LID"
-head(BSM_LAKE_CHARS)
-
-WATER_CHEM=read.csv("WaterChemLakeStatistics.csv") # All the waterchemistry variables from BsM
-names(WATER_CHEM)[4]="WATERBODY_LID"
-head(WATER_CHEM)
-
-####################################################################################
-## First Merge: Waterchem variables with Lake variables
-WATERCHEM2BSMLAKECHAR=merge(x=WATER_CHEM, y = BSM_LAKE_CHARS, by = "WATERBODY_LID")
-head(WATERCHEM2BSMLAKECHAR)
-length(WATERCHEM2BSMLAKECHAR[,1])
-
+                  
 ## Second merge Above merged table with fish mercury database
 HG_AGE_BSM2WATERCHEMLAKECHARS=merge(x=WATERCHEM2BSMLAKECHAR, y = HG_AGE_BSM.SS, by = "WATERBODY_LID")
 length(HG_AGE_BSM2WATERCHEMLAKECHARS[,1])
