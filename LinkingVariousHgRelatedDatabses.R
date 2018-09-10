@@ -6,9 +6,9 @@ library(PerformanceAnalytics)
 setwd("C:/Users/thoma/Rprojects/Databases")
 
 #######################################################MERGING DATABASE WIITHOUT AGE INFORMATION#########################################
-#First read all the databases
+#Read all the disparate sources of databases
 
-Hg_Data_allyears=read.csv("Hg_data_1970_Mar2016.csv") #The original HG database with fewer columns
+Hg_Data_allyears=read.csv("Hg_data_1970_Mar2016.csv") #The original HG database with fewer columns from Sayendra (OMECP)
 head(Hg_Data_allyears)
 length(unique(Hg_Data_allyears$SAMPLE_DATE)) #get a count
 
@@ -86,7 +86,8 @@ head(HgWaterChemDOLakeChars_LULCinnerjoin)
 write.csv(HgWaterChemDOLakeChars_LULCinnerjoin,"HG_WATERCHEM_DO_LAKECHAR_LULC.csv")
 
 ###############################################################################################################################
-### Read the Age database
+                                        ##Read the Age database##
+                  
 HG_AGE_BSM=read.csv("Age_Hg_linked.csv") # The long-running mercury database with age included from Stephanie
 head(HG_AGE_BSM)
 HG_AGE_BSM.SS=HG_AGE_BSM[,-c(5,10,12,14,20:24)] #A subset of above database with fewer columns
